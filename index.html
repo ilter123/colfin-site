@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Colfin - Giyim Markası</title>
+  <script src="https://cdn.tailwindcss.com"></script> 
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-white shadow sticky top-0 z-50">
+    <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="flex items-center space-x-2">
+        <span class="text-2xl font-bold text-orange-500">Colfin</span>
+      </div>
+      <div class="space-x-6 hidden md:flex">
+        <a href="#hakkimizda" class="hover:text-orange-500 transition">Hakkımızda</a>
+        <a href="#forum" class="hover:text-orange-500 transition">Forum</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="py-20 bg-gradient-to-r from-orange-100 to-pink-100 text-center">
+    <div class="container mx-auto px-4">
+      <h1 class="text-4xl md:text-5xl font-bold mb-6 text-gray-900">
+        Stilinizi Yeniden Tanımlayın
+      </h1>
+      <p class="text-lg md:text-xl max-w-2xl mx-auto mb-8 text-gray-700">
+        Colfin, herkesin kendi stilini özgürce ifade edebileceği bir giyim platformudur.
+      </p>
+
+      <!-- Manuel Giriş Formu -->
+      <div id="auth-section" class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold mb-4">Kayıt Ol veya Giriş Yap</h2>
+        <input type="email" id="user-email" placeholder="E-posta Adresi" class="w-full px-4 py-2 border border-gray-300 rounded mb-4 block" />
+        <input type="text" id="user-name" placeholder="Adınız" class="w-full px-4 py-2 border border-gray-300 rounded mb-4 block" />
+        <input type="password" id="user-password" placeholder="Şifreniz" class="w-full px-4 py-2 border border-gray-300 rounded mb-4 block" onkeypress="if(event.key === 'Enter') loginUser()" />
+        <button onclick="loginUser()" class="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded transition">
+          Kayıt Ol / Giriş Yap
+        </button>
+      </div>
+
+      <!-- Giriş sonrası içerik -->
+      <div id="main-content" class="hidden mt-6">
+        <p class="text-green-600 font-semibold" id="welcome-message"></p>
+        <button onclick="logoutUser()" class="mt-2 text-red-500 hover:text-red-700">Çıkış Yap</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Hakkımızda -->
+  <section id="hakkimizda" class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold mb-10 text-center text-gray-900">Hakkımızda</h2>
+      <div class="max-w-3xl mx-auto text-left text-gray-700 leading-relaxed space-y-6">
+        <p>
+          <strong>Colfin</strong>, 2025 yılında Antalya'da kuruldu. Amacımız, her bireyin kendi kişiliğini ve stilini rahatlıkla yansıtabileceği kaliteli ürünler üretmektir.
+        </p>
+        <p>
+          Her koleksiyonumuzu moda dünyasına uygun ve çevre dostu şekilde planlıyoruz. Müşterilerimizin memnuniyeti bizim için en büyük motivasyondur.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Soru & Cevap Forumu -->
+  <section id="forum" class="py-16 bg-gray-50">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold mb-10 text-center text-gray-900">Soru Sorun, Cevap Verin</h2>
+
+      <div class="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-sm">
+        <textarea id="new-question" rows="3" placeholder="Bir soru yazın..." class="w-full px-4 py-3 border border-gray-300 rounded resize-none mb-2"></textarea>
+        <button onclick="addQuestion()" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded transition">Soruyu Gönder</button>
+      </div>
+
+      <div id="questions-list" class="max-w-3xl mx-auto mt-6 space-y-4"></div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-white py-6 mt-12 border-t">
+    <div class="container mx-auto px-4 text-center text-gray-600">
+      &copy; {new Date().getFullYear()} Colfin. Tüm hakları saklıdır.
+    </div>
+  </footer>
+
+  <script>
+    let currentUser = null;
+
+    // Admin bilgileri
+    const admins = [
+      {
+        email: "admin@colfin.com",
+        name: "Colfin Ekibi",
+        password: "admin123"
+      }
+    ];
+
+    function loginUser() {
+      const emailInput = document.getElementById('user-email');
+      const nameInput = document.getElementById('user-name');
+      const passInput = document.getElementById('user-password');
+
+      const email = emailInput.value.trim();
+      const name = nameInput.value.trim();
+      const pass = passInput.value.trim();
+
+      // Admin kontrolü
+      const adminMatch = admins.find(a => a.email === email && a.password === pass);
+
+      if (adminMatch) {
+        currentUser = { name: adminMatch.name, email: adminMatch.email, isAdmin: true };
+        localStorage.setItem("user", JSON.stringify(currentUser));
+        renderForum();
+        return;
+      }
+
+      // Normal kullanıcı girişi
+      if (!email || !name || !pass) {
+        alert("Lütfen tüm alanları doldurun.");
+        return;
+      }
+
+      currentUser = { name, email, isAdmin: false };
+      localStorage.setItem("user", JSON.stringify(currentUser));
+      renderForum();
+    }
+
+    function logoutUser() {
+      localStorage.removeItem("user");
+      currentUser = null;
+      document.getElementById("auth-section").classList.remove("hidden");
+      document.getElementById("main-content").classList.add("hidden");
+
+      document.getElementById("user-email").value = "";
+      document.getElementById("user-name").value = "";
+      document.getElementById("user-password").value = "";
+
+      // Forum yeniden yükle
+      document.getElementById("questions-list").innerHTML = "";
+    }
+
+    function renderForum() {
+      document.getElementById("auth-section").classList.add("hidden");
+      document.getElementById("main-content").classList.remove("hidden");
+
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (user) {
+        document.getElementById("welcome-message").innerText = `Hoş geldin, ${user.name}`;
+      }
+    }
+
+    function addQuestion() {
+      const input = document.getElementById("new-question");
+      const questionText = input.value.trim();
+
+      if (!questionText) {
+        alert("Lütfen bir soru yazın.");
+        return;
+      }
+
+      const questionsList = document.getElementById("questions-list");
+
+      const questionDiv = document.createElement("div");
+      questionDiv.className = "bg-white p-4 rounded-lg shadow-sm mt-4";
+      questionDiv.dataset.question = questionText;
+
+      const user = JSON.parse(localStorage.getItem("user"));
+
+      // Soruyu göster
+      const questionParagraph = document.createElement("p");
+      questionParagraph.className = "font-semibold";
+      questionParagraph.textContent = questionText;
+
+      // Kullanıcı adı
+      const userLine = document.createElement("p");
+      userLine.className = "text-xs text-gray-500 mt-1";
+      userLine.innerHTML = `— ${user?.name || 'Misafir'}`;
+
+      // Cevap alanı
+      const answerInput = document.createElement("input");
+      answerInput.type = "text";
+      answerInput.placeholder = "Cevap verin...";
+      answerInput.className = "w-full px-3 py-2 border border-gray-300 rounded text-sm mt-4";
+      answerInput.onkeypress = (e) => {
+        if (e.key === "Enter") {
+          const answerText = answerInput.value.trim();
+          if (!answerText) return;
+
+          const answerElement = document.createElement("div");
+          answerElement.className = "mt-2 pl-3 border-l-2 border-gray-300 text-sm text-gray-700";
+          answerElement.innerHTML = `<span class="text-xs text-gray-500">— ${user?.name || 'Misafir'}:</span><br/><span class="ml-2">${answerText}</span>`;
+          answerInput.parentElement.appendChild(answerElement);
+          answerInput.value = "";
+        }
+      };
+
+      // Silme butonu (sadece admin için)
+      if (user && user.isAdmin) {
+        const deleteBtn = document.createElement("button");
+        deleteBtn.textContent = "Sil";
+        deleteBtn.className = "text-xs text-red-500 hover:text-red-700 ml-2 mt-2";
+        deleteBtn.onclick = () => {
+          questionDiv.remove();
+        };
+
+        questionDiv.appendChild(deleteBtn);
+      }
+
+      questionDiv.appendChild(questionParagraph);
+      questionDiv.appendChild(userLine);
+      questionDiv.appendChild(answerInput);
+
+      questionsList.prepend(questionDiv);
+      input.value = "";
+    }
+
+    // Sayfa yüklendiğinde kullanıcı kontrolü
+    window.onload = () => {
+      const user = JSON.parse(localStorage.getItem("user"));
+      if (user) {
+        document.getElementById("auth-section").classList.add("hidden");
+        document.getElementById("main-content").classList.remove("hidden");
+        document.getElementById("welcome-message").innerText = `Hoş geldin, ${user.name}`;
+      } else {
+        document.getElementById("main-content").classList.add("hidden");
+        document.getElementById("auth-section").classList.remove("hidden");
+      }
+    };
+  </script>
+
+</body>
+</html>
